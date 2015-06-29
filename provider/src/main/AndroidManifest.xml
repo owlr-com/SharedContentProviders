@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.owlr.provider"
+    >
+
+  <permission
+      android:name="${sharedPermission}"
+      android:protectionLevel="signature"
+      />
+
+  <uses-permission android:name="${sharedPermission}"/>
+
+  <application
+      android:allowBackup="true"
+      android:label="@string/app_name"
+      >
+    <provider
+        android:name="com.owlr.provider.SharedProvider"
+        android:authorities="${applicationId}.provider"
+        android:exported="true"
+        android:permission="${sharedPermission}"
+        />
+
+    <receiver
+        android:name="com.owlr.provider.SharedProviderBootReceiver"
+        android:enabled="true"
+        android:exported="true"
+        >
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+      </intent-filter>
+      <intent-filter>
+        <category android:name="android.intent.category.DEFAULT"/>
+
+        <action android:name="android.intent.action.PACKAGE_ADDED"/>
+
+        <data android:scheme="package"/>
+      </intent-filter>
+    </receiver>
+
+    <receiver
+        android:name="com.owlr.provider.SharedContentChangedReceiver"
+        android:enabled="true"
+        android:permission="${sharedPermission}"
+        android:exported="true"
+        >
+      <intent-filter>
+        <action android:name="${sharedPermission}"/>
+      </intent-filter>
+
+    </receiver>
+
+    <meta-data
+        android:name="app_authority"
+        android:value="${applicationId}.provider"
+        />
+    <meta-data
+        android:name="app_authority_matcher"
+        android:value="${sharedAuthorityMatcher}"
+        />
+    <meta-data
+        android:name="app_shared_permission"
+        android:value="${sharedPermission}"
+        />
+  </application>
+
+</manifest>

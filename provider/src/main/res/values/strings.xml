@@ -1,0 +1,4 @@
+<resources>
+  <string name="app_name">provider</string>
+  <string name="provider_permissions_group">com.owlr.permission.group.PROVIDER</string>
+</resources>

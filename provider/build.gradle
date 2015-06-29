@@ -1,0 +1,32 @@
+apply plugin: 'com.android.library'
+
+android {
+  compileSdkVersion 22
+  buildToolsVersion "23.0.0 rc2"
+  testBuildType "placeholder"
+
+  defaultConfig {
+    minSdkVersion 15
+    targetSdkVersion 22
+    versionCode 1
+    versionName "1.0"
+    manifestPlaceholders =
+        [sharedPermission: '${sharedPermission}', sharedAuthorityMatcher: '${sharedAuthorityMatcher}']
+  }
+  buildTypes {
+    placeholder {
+      manifestPlaceholders =
+          [sharedPermission: 'com.test.PERMISSION', sharedAuthorityMatcher: 'com\\\\.test\\\\.provider']
+    }
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+  }
+}
+
+dependencies {
+  compile fileTree(dir: 'libs', include: ['*.jar'])
+  compile 'com.android.support:appcompat-v7:22.2.0'
+}
+
