@@ -13,10 +13,18 @@ import java.util.Set;
 
 public class SharedContentChangedReceiver extends BroadcastReceiver implements Types {
 
-  public static void sendBroadcast(Context context, @NonNull Map<String, ?> data) {
+  public static final String SENDER_AUTHORITY_KEY = "sender_authority";
+
+  /**
+   * Send a broadcast with the dump of the master SharedPreference to do a dump of the masters
+   * SharedPreference store to the slaves.
+   */
+  public static void sendBroadcast(@NonNull Context context, @NonNull Map<String, ?> data) {
     //We use the shared permission as the Action as they are both linked.
     String sharedPermission = MetaDataUtils.getSharedPermission(context);
+    String senderAuthority = MetaDataUtils.getAppAuthority(context);
     Intent intent = new Intent(sharedPermission);
+    intent.putExtra(SENDER_AUTHORITY_KEY, senderAuthority);
     putDataIntoIntent(intent, data);
     context.sendBroadcast(intent, sharedPermission);
   }
@@ -25,7 +33,15 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
   }
 
   @Override public void onReceive(Context context, Intent intent) {
-    Log.d("SharedProvider", "Received Data Changed Event");
+    final String appAuthority = MetaDataUtils.getAppAuthority(context);
+    Log.d("SharedProvider", "Received Data Changed Event, SentByAuth [" + appAuthority + "]");
+
+    // Ignore me as I sent this!
+    if (TextUtils.isEmpty(appAuthority) || appAuthority.equalsIgnoreCase(
+        intent.getStringExtra(SENDER_AUTHORITY_KEY))) {
+      Log.v("SharedProvider", "Skipped DataChange, SentByAuth [" + appAuthority + "]");
+      return;
+    }
     putIntentIntoSharedPreferences(context, intent.getExtras());
   }
 
@@ -33,9 +49,6 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
     Set<? extends Map.Entry<String, ?>> entries = data.entrySet();
     for (Map.Entry<String, ?> entry : entries) {
       String key = entry.getKey();
-      if (MASTER_KEY.equalsIgnoreCase(key)) {
-        continue;
-      }
       Object value = entry.getValue();
       if (value instanceof String) {
         intent.putExtra(key, (String) value);
@@ -62,6 +75,11 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
     String key;
     while (keysIter.hasNext()) {
       key = keysIter.next();
+      switch (key) {
+        case MASTER_KEY:
+        case SENDER_AUTHORITY_KEY:
+          continue;
+      }
       value = bundle.get(key);
       if (value instanceof String) {
         edit.putString(key, (String) value);

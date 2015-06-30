@@ -26,7 +26,7 @@ public class SharedProvider extends ContentProvider implements Types {
   /**
    * Sets up this content provider with this this apps AUTHORITY pulled from the meta tag.
    * This will do nothing if {@link #BASE_URI} is not null. It is safe to assume everything as been
-   * initilized if {@link #BASE_URI} is not null.
+   * initialized if {@link #BASE_URI} is not null.
    */
   static void init(Context context) {
     if (BASE_URI != null) return;
@@ -115,7 +115,7 @@ public class SharedProvider extends ContentProvider implements Types {
         } else {
           editor.commit();
         }
-        updateSlaves(mSharedPrefs);
+        updateSlaves(getContext(), mSharedPrefs);
         break;
       default:
         throw new IllegalArgumentException("Unsupported uri " + uri);
@@ -127,7 +127,7 @@ public class SharedProvider extends ContentProvider implements Types {
     switch (sUriMatcher.match(uri)) {
       case MATCH_DATA:
         mSharedPrefs.edit().clear().commit();
-        updateSlaves(mSharedPrefs);
+        updateSlaves(getContext(), mSharedPrefs);
         break;
       default:
         throw new IllegalArgumentException("Unsupported uri " + uri);
@@ -162,9 +162,9 @@ public class SharedProvider extends ContentProvider implements Types {
     return context.getSharedPreferences("local_shared_prefs", Context.MODE_PRIVATE);
   }
 
-  private void updateSlaves(SharedPreferences sharedPreferences) {
+  private static void updateSlaves(Context context, SharedPreferences sharedPreferences) {
     if (sharedPreferences.getBoolean(MASTER_KEY, false)) {
-      SharedContentChangedReceiver.sendBroadcast(getContext(), this.mSharedPrefs.getAll());
+      SharedContentChangedReceiver.sendBroadcast(context, sharedPreferences.getAll());
     }
   }
 }

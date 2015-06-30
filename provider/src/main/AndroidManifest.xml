@@ -22,23 +22,6 @@
         />
 
     <receiver
-        android:name="com.owlr.provider.SharedProviderBootReceiver"
-        android:enabled="true"
-        android:exported="true"
-        >
-      <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED"/>
-      </intent-filter>
-      <intent-filter>
-        <category android:name="android.intent.category.DEFAULT"/>
-
-        <action android:name="android.intent.action.PACKAGE_ADDED"/>
-
-        <data android:scheme="package"/>
-      </intent-filter>
-    </receiver>
-
-    <receiver
         android:name="com.owlr.provider.SharedContentChangedReceiver"
         android:enabled="true"
         android:permission="${sharedPermission}"

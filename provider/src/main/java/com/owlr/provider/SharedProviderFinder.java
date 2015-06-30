@@ -84,6 +84,7 @@ public class SharedProviderFinder implements Types {
     String authority;
     boolean isMaster;
     ProviderInfo providerInfo;
+    String masterAuthority = null;
     for (int i = 0; i < providerInfos.size(); i++) {
       providerInfo = providerInfos.get(i);
       authority = providerInfo.authority;
@@ -91,13 +92,21 @@ public class SharedProviderFinder implements Types {
               .query(getContentUri(authority, MASTER_KEY, BOOLEAN_TYPE), null, null, null, null),
           false);
       Log.d("SharedProviders", "Auth " + authority + " isMaster: " + isMaster);
-      //TODO handle case where there could be two masters. We need to pick one via a means of "freshness".
-      if (isMaster) {
-        return authority;
+      //Select the first Master Auth then we un delegate the rest.
+      if (isMaster && TextUtils.isEmpty(masterAuthority)) {
+        masterAuthority = authority;
+      } else if (isMaster && !TextUtils.isEmpty(masterAuthority)) {
+        // We un-delegate other masters. This can be if for some reason other masters were delegated
+        // by themselves..
+        Log.d("SharedProviders", "Un-Delegate Auth: " + authority);
+        delegateMaster(authority, false);
       }
     }
+    if (!TextUtils.isEmpty(masterAuthority)) {
+      return masterAuthority;
+    }
     // If we reach here, then there are no masters so we delegate one. (Top of the list in the current impl)
-    return delegateMaster(providerInfos.get(0).authority);
+    return delegateMaster(providerInfos.get(0).authority, true);
   }
 
   /**
@@ -107,9 +116,12 @@ public class SharedProviderFinder implements Types {
     return findMasterProvider(findProviders());
   }
 
-  private String delegateMaster(String authority) {
+  /**
+   * Tell this Provider if it should be master or not.
+   */
+  private String delegateMaster(String authority, boolean isMaster) {
     ContentValues contentValues = new ContentValues();
-    contentValues.put(MASTER_KEY, true);
+    contentValues.put(MASTER_KEY, isMaster);
     context.getContentResolver().insert(getContentUri(authority, KEY, TYPE), contentValues);
     return authority;
   }
