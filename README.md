@@ -1,7 +1,7 @@
 # Work in progress / Concept Piece
 
 Have multiple app? Need to share state between them (user details, favourites etc..). This is a
-distributed SharedPreferences backed by a `ContentProvider`.
+distributed `SharedPreferences` backed by a `ContentProvider`.
 
 # Setup
 
