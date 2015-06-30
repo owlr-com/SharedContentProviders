@@ -3,8 +3,11 @@ package com.owlr.provider;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,7 +26,7 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
 
   @Override public void onReceive(Context context, Intent intent) {
     Log.d("SharedProvider", "Received Data Changed Event");
-    intent.getExtras();
+    putIntentIntoSharedPreferences(context, intent.getExtras());
   }
 
   private static void putDataIntoIntent(Intent intent, Map<String, ?> data) {
@@ -46,5 +49,32 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
         intent.putExtra(key, (Float) value);
       }
     }
+  }
+
+  private static void putIntentIntoSharedPreferences(Context context, Bundle bundle) {
+    final Iterator<String> keysIter = bundle.keySet().iterator();
+    final String appAuthority = MetaDataUtils.getAppAuthority(context);
+    if (TextUtils.isEmpty(appAuthority)) return;
+    final SharedSharedPreference localPrefs = new SharedSharedPreference(context, appAuthority);
+    SharedSharedPreference.SharedEditor edit = localPrefs.edit();
+
+    Object value;
+    String key;
+    while (keysIter.hasNext()) {
+      key = keysIter.next();
+      value = bundle.get(key);
+      if (value instanceof String) {
+        edit.putString(key, (String) value);
+      } else if (value instanceof Boolean) {
+        edit.putBoolean(key, (Boolean) value);
+      } else if (value instanceof Long) {
+        edit.putLong(key, (Long) value);
+      } else if (value instanceof Integer) {
+        edit.putInt(key, (Integer) value);
+      } else if (value instanceof Float) {
+        edit.putFloat(key, (Float) value);
+      }
+    }
+    edit.apply();
   }
 }

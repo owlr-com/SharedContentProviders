@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -33,9 +34,19 @@ public class SharedSharedPreference implements SharedPreferences, Types {
   private final Context context;
   private String authority;
 
-  public SharedSharedPreference(Context context) {
+  public SharedSharedPreference(@NonNull Context context) {
     this.context = context.getApplicationContext();
     refreshAuthority();
+  }
+
+  /**
+   * Manually set this Authority to talk to a specific Provider, generally used to target this
+   * content
+   * provider.
+   */
+  protected SharedSharedPreference(@NonNull Context context, @NonNull String authority) {
+    this.context = context.getApplicationContext();
+    this.authority = authority;
   }
 
   public void refreshAuthority() {

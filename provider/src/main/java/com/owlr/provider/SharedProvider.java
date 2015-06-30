@@ -52,7 +52,7 @@ public class SharedProvider extends ContentProvider implements Types {
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
       String sortOrder) {
-    MatrixCursor cursor = null;
+    MatrixCursor cursor;
     switch (sUriMatcher.match(uri)) {
       case MATCH_DATA:
         final String key = uri.getPathSegments().get(0);
@@ -60,7 +60,7 @@ public class SharedProvider extends ContentProvider implements Types {
         cursor = new MatrixCursor(new String[] { key });
         if (!mSharedPrefs.contains(key)) return cursor;
         MatrixCursor.RowBuilder rowBuilder = cursor.newRow();
-        Object object = null;
+        Object object;
         if (STRING_TYPE.equals(type)) {
           object = mSharedPrefs.getString(key, null);
         } else if (BOOLEAN_TYPE.equals(type)) {
@@ -115,7 +115,7 @@ public class SharedProvider extends ContentProvider implements Types {
         } else {
           editor.commit();
         }
-        updateSlaves();
+        updateSlaves(mSharedPrefs);
         break;
       default:
         throw new IllegalArgumentException("Unsupported uri " + uri);
@@ -127,7 +127,7 @@ public class SharedProvider extends ContentProvider implements Types {
     switch (sUriMatcher.match(uri)) {
       case MATCH_DATA:
         mSharedPrefs.edit().clear().commit();
-        updateSlaves();
+        updateSlaves(mSharedPrefs);
         break;
       default:
         throw new IllegalArgumentException("Unsupported uri " + uri);
@@ -162,7 +162,9 @@ public class SharedProvider extends ContentProvider implements Types {
     return context.getSharedPreferences("local_shared_prefs", Context.MODE_PRIVATE);
   }
 
-  private void updateSlaves() {
-    SharedContentChangedReceiver.sendBroadcast(getContext(), mSharedPrefs.getAll());
+  private void updateSlaves(SharedPreferences sharedPreferences) {
+    if (sharedPreferences.getBoolean(MASTER_KEY, false)) {
+      SharedContentChangedReceiver.sendBroadcast(getContext(), this.mSharedPrefs.getAll());
+    }
   }
 }
