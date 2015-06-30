@@ -1,7 +1,7 @@
 # Work in progress / Concept Piece
 
-The SharedProvider is backed by a normal SharedPreferences, this can be overridden by using `SharedPreferencesProvider`
-on your `Application` object.
+Have multiple app? Need to share state between them (user details, favourites etc..). This is a
+distributed SharedPreferences backed by a `ContentProvider`.
 
 # Setup
 
@@ -26,7 +26,6 @@ distributing data.
 SharedPreferences mPrefs = new SharedSharedPreference(mApplication);
 ```
 
-
 ### ManifestPlaceholders
 
 We use the placeholders over Android Meta-data elements as the buildTools will fail at compile time
@@ -40,6 +39,18 @@ other.
 - `sharedAuthorityMatcher` We use a regex method to find other providers. If your provider authority
 matches the regex then your apps will talk to each other. Worth noting these need to be common before
 deployment. E.g. use something like `com.company.{appname}`. That way you can find all your providers by default.
+
+### ContentProvider SharedPreferences
+
+The SharedProvider is backed by a normal SharedPreferences, you can override this by implementing
+`SharedPreferencesProducer` on your `Application` object.
+
+```
+@Override
+public @Nullable SharedPreferences provideSharedPreferences(){
+  return context.getSharedPreferences("this_apps_local_store", Context.MODE_PRIVATE);
+}
+```
 
 ### Example Regex
 
@@ -55,7 +66,7 @@ Of course make sure you swap out the necessary parts of your common package name
 
 ### Providers
 
-Each app you create generates inherts a provider from the Library. (See snippet below).
+Each app you create generates inherits a provider from the Library. (See snippet below).
 
 ```
 <provider
@@ -65,3 +76,12 @@ Each app you create generates inherts a provider from the Library. (See snippet 
         android:permission="${sharedPermission}"
         />
 ```
+
+### Permissions & Signatures
+
+** All your apps need to be signed by the same Keystore**
+
+The placeholder you provide for `sharedPermission` needs to be unique to your group of apps. The
+`providers` and `BroadcastReceivers` rely on this `permission` and the fact that each app has the same
+signature.
+
