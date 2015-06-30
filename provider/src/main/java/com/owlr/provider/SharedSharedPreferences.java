@@ -19,7 +19,7 @@ import static com.owlr.provider.SharedCursorUtils.getStringValue;
 /**
  * Created by chris on 18/06/15.
  */
-public class SharedSharedPreference implements SharedPreferences, Types {
+public class SharedSharedPreferences implements SharedPreferences, Types {
 
   /**
    * Builds a Uri for the any provider authority content you are trying to access, this makes the
@@ -54,7 +54,7 @@ public class SharedSharedPreference implements SharedPreferences, Types {
    *
    * @see #refreshAuthority()
    */
-  public SharedSharedPreference(@NonNull Context context) {
+  public SharedSharedPreferences(@NonNull Context context) {
     this.context = context.getApplicationContext();
     refreshAuthority();
   }
@@ -64,12 +64,12 @@ public class SharedSharedPreference implements SharedPreferences, Types {
    * content
    * provider.
    */
-  protected SharedSharedPreference(@NonNull Context context, @NonNull String authority) {
+  protected SharedSharedPreferences(@NonNull Context context, @NonNull String authority) {
     this.context = context.getApplicationContext();
     this.authority = authority;
   }
 
-  public SharedSharedPreference refreshAuthority() {
+  public SharedSharedPreferences refreshAuthority() {
     SharedProviderFinder finder = SharedProviderFinder.get(context);
     authority = finder.findMasterProvider();
     return this;

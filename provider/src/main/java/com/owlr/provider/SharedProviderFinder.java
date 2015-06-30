@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.owlr.provider.SharedCursorUtils.getBooleanValue;
-import static com.owlr.provider.SharedSharedPreference.getContentUri;
+import static com.owlr.provider.SharedSharedPreferences.getContentUri;
 
 /**
  * Handles app interaction, you should never need to use this manually, more if you want to pull

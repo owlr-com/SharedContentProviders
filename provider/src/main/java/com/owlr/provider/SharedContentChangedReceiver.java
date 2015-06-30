@@ -68,8 +68,8 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
     final Iterator<String> keysIter = bundle.keySet().iterator();
     final String appAuthority = MetaDataUtils.getAppAuthority(context);
     if (TextUtils.isEmpty(appAuthority)) return;
-    final SharedSharedPreference localPrefs = new SharedSharedPreference(context, appAuthority);
-    SharedSharedPreference.SharedEditor edit = localPrefs.edit();
+    final SharedSharedPreferences localPrefs = new SharedSharedPreferences(context, appAuthority);
+    SharedSharedPreferences.SharedEditor edit = localPrefs.edit();
 
     Object value;
     String key;
