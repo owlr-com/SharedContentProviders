@@ -34,6 +34,26 @@ public class SharedSharedPreference implements SharedPreferences, Types {
   private final Context context;
   private String authority;
 
+  /**
+   * Get a SharedPreference instance, this will pull data from the distributed state.
+   * There is a delegated master which this "talks to", it then syncs with all the slaves to make
+   * sure if the master is removed one of the children will have the same data and re-delegate.
+   *
+   * There could be a case where the master changes and this points at the old master. Therefor
+   * do not hold onto {@code Editor} instances.
+   *
+   * Make sure you get editors and commit them in one chain.
+   * {@code
+   * mPrefs.edit().putString("key","value").commit();
+   * }
+   *
+   * The {@code Editor} will refresh the master list on init.
+   *
+   * Getting and Setting StringSets are not supported, getAll is also not supported.
+   * Also worth noting that observers are not supported either.
+   *
+   * @see #refreshAuthority()
+   */
   public SharedSharedPreference(@NonNull Context context) {
     this.context = context.getApplicationContext();
     refreshAuthority();
@@ -49,9 +69,10 @@ public class SharedSharedPreference implements SharedPreferences, Types {
     this.authority = authority;
   }
 
-  public void refreshAuthority() {
+  public SharedSharedPreference refreshAuthority() {
     SharedProviderFinder finder = SharedProviderFinder.get(context);
-    authority = finder.findMasterProvider(finder.findProviders());
+    authority = finder.findMasterProvider();
+    return this;
   }
 
   @Override public Map<String, ?> getAll() {
@@ -97,15 +118,18 @@ public class SharedSharedPreference implements SharedPreferences, Types {
   }
 
   @Override public SharedEditor edit() {
+    refreshAuthority();
     return new SharedEditor(context, authority);
   }
 
   @Override
   public void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
+    throw new UnsupportedOperationException("Not implemented.");
   }
 
   @Override public void unregisterOnSharedPreferenceChangeListener(
       OnSharedPreferenceChangeListener listener) {
+    throw new UnsupportedOperationException("Not implemented.");
   }
 
   public static class SharedEditor implements SharedPreferences.Editor {

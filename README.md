@@ -5,7 +5,9 @@ on your `Application` object.
 
 # Setup
 
+Include the `providers` module in your project.
 
+Add the following to your core app build config:
 ```
 android {
   //...
@@ -15,19 +17,11 @@ android {
   //...
 }
 ```
+Missing these from your build config will break your build, they are **mandatory**.
 
-### Providers
 
-Each app you create generates a provider using your applicationId.
 
-```
-<provider
-        android:name="com.owlr.provider.SharedProvider"
-        android:authorities="${applicationId}.provider"
-        android:exported="true"
-        android:permission="${sharedPermission}"
-        />
-```
+
 
 ### ManifestPlaceholders
 
@@ -54,3 +48,16 @@ This matches:
 - **com.base.package.**app2.something.**provider**
 
 Of course make sure you swap out the necessary parts of your common package name.
+
+### Providers
+
+Each app you create generates inherts a provider from the Library. (See snippet below).
+
+```
+<provider
+        android:name="com.owlr.provider.SharedProvider"
+        android:authorities="${applicationId}.provider"
+        android:exported="true"
+        android:permission="${sharedPermission}"
+        />
+```
