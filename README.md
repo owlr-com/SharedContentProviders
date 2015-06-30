@@ -19,8 +19,12 @@ android {
 ```
 Missing these from your build config will break your build, they are **mandatory**.
 
+Then use the `SharedSharedPreference` class as you would normally and the library will handle
+distributing data.
 
-
+```
+SharedPreferences mPrefs = new SharedSharedPreference(mApplication);
+```
 
 
 ### ManifestPlaceholders
@@ -28,7 +32,7 @@ Missing these from your build config will break your build, they are **mandatory
 We use the placeholders over Android Meta-data elements as the buildTools will fail at compile time
 if you forget to include these.
 
-**THESE MUST BE THE SAME IN EVERY APP YOU PUBLISH**
+**THESE MUST BE THE __SAME__ IN EVERY APP YOU PUBLISH**
 
 - `sharedPermission` The unique permission to use. This is used to identify which providers can talk
 to each other, this is combined with your app signature to make sure your apps can only talk to each
