@@ -1,7 +1,15 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: "com.jfrog.bintray"
 
-group='com.github.owlr-com'
+
+// This is the library version used when deploying the artifact
+version = "1.0.0-beta"
+group = 'com.owlr'
+def siteUrl = 'https://github.com/owlr-com/SharedContentProviders'
+// Homepage URL of the library
+def gitUrl = 'https://github.com/owlr-com/SharedContentProviders.git'
+// Git repository URL
 
 android {
   compileSdkVersion 22
@@ -11,8 +19,8 @@ android {
   defaultConfig {
     minSdkVersion 15
     targetSdkVersion 22
-    versionCode 1
-    versionName "1.0"
+    versionCode 2
+    versionName version
     manifestPlaceholders =
         [sharedPermission: '${sharedPermission}', sharedAuthorityMatcher: '${sharedAuthorityMatcher}']
   }
@@ -31,5 +39,73 @@ android {
 dependencies {
   compile fileTree(dir: 'libs', include: ['*.jar'])
   compile 'com.android.support:appcompat-v7:22.2.0'
+}
+
+bintray {
+  user = getProperty("bintray.user")
+  key = getProperty("bintray.apikey")
+
+  configurations = ['archives']
+  pkg {
+    repo = "maven"
+    name = "SharedContentProviders"
+    websiteUrl = siteUrl
+    vcsUrl = gitUrl
+    licenses = ["Apache-2.0"]
+    publish = true
+  }
+}
+
+task sourcesJar(type: Jar) {
+  from android.sourceSets.main.java.srcDirs
+  classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+  source = android.sourceSets.main.java.srcDirs
+  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+artifacts {
+  archives javadocJar
+  archives sourcesJar
+}
+
+install {
+  repositories.mavenInstaller {
+    // This generates POM.xml with proper parameters
+    pom {
+      project {
+        packaging 'aar'
+
+        // Add your description here
+        name 'SharedContentProviders'
+        url siteUrl
+        version version
+
+        // Set your license
+        licenses {
+          license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+        developers {
+          developer {
+            id 'chrisjenx'
+            name 'Christopher Jenkins'
+            email 'chris@owlr.com'
+          }
+        }
+        scm {
+          connection gitUrl
+          developerConnection gitUrl
+          url siteUrl
+        }
+      }
+    }
+  }
 }
 
