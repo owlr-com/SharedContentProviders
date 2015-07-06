@@ -57,6 +57,8 @@ public class SharedProviderFinder implements Types {
     final List<ProviderInfo> installedProviders = getInstalledProviders();
     final ArrayList<ProviderInfo> sharedProviders = new ArrayList<>(installedProviders);
     for (ProviderInfo provider : installedProviders) {
+      // #2 Skip if authority is null. Skip as we can't match it.
+      if (TextUtils.isEmpty(provider.authority)) continue;
       final Matcher matcher = mPattern.matcher(provider.authority);
       if (!matcher.matches()) {
         // No match, remove it from sharedProviders.
