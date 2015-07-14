@@ -164,8 +164,8 @@ public class SharedProvider extends ContentProvider implements Types {
   }
 
   private static void updateSlaves(Context context, SharedPreferences sharedPreferences) {
-    Log.d("SharedProviders", "UpdateSlaves Called from [" + AUTHORITY + "]");
     if (sharedPreferences.getBoolean(MASTER_KEY, false)) {
+      Log.d("SharedProviders", "UpdateSlaves Called from [" + AUTHORITY + "]");
       SharedContentChangedReceiver.sendBroadcast(context, sharedPreferences.getAll());
     }
   }
