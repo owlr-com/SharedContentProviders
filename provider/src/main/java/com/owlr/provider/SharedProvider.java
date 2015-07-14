@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import java.util.Map;
 
 /**
@@ -163,6 +164,7 @@ public class SharedProvider extends ContentProvider implements Types {
   }
 
   private static void updateSlaves(Context context, SharedPreferences sharedPreferences) {
+    Log.d("SharedProviders", "UpdateSlaves Called from [" + AUTHORITY + "]");
     if (sharedPreferences.getBoolean(MASTER_KEY, false)) {
       SharedContentChangedReceiver.sendBroadcast(context, sharedPreferences.getAll());
     }
