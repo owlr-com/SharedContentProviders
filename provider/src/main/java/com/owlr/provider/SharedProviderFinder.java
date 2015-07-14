@@ -1,10 +1,12 @@
 package com.owlr.provider;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import java.util.ArrayList;
@@ -14,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.owlr.provider.SharedCursorUtils.getBooleanValue;
-import static com.owlr.provider.SharedSharedPreferences.getContentUri;
 
 /**
  * Handles app interaction, you should never need to use this manually, more if you want to pull
@@ -26,26 +27,42 @@ public class SharedProviderFinder implements Types {
 
   private static SharedProviderFinder sharedProviderFinder;
 
-  public static SharedProviderFinder get(Context context) {
-    if (sharedProviderFinder == null) {
-      sharedProviderFinder = new SharedProviderFinder(context);
-    }
-    return sharedProviderFinder;
-  }
-
-  private final Pattern mPattern;
-  private final Context context;
-  private final String sharedPermission;
-
-  private SharedProviderFinder(Context context) {
-    this.context = context;
-    this.sharedPermission = MetaDataUtils.getSharedPermission(context);
+  private static SharedProviderFinder initDefaultFinder(Context context) {
+    String sharedPermission = MetaDataUtils.getSharedPermission(context);
     final String matcherPattern = MetaDataUtils.getSharedAuthorityMatcher(context);
     if (TextUtils.isEmpty(matcherPattern)) {
       throw new IllegalStateException(
           "You need to define the \"app_authority_matcher\" meta-data in your ApplicationManifest.xml");
     }
-    mPattern = Pattern.compile(matcherPattern);
+    Pattern pattern = Pattern.compile(matcherPattern);
+    return new SharedProviderFinder(context, pattern, sharedPermission,
+        context.getContentResolver());
+  }
+
+  /**
+   * Get a pre-configured finder instance.
+   */
+  public static SharedProviderFinder get(Context context) {
+    if (sharedProviderFinder == null) {
+      sharedProviderFinder = initDefaultFinder(context);
+    }
+    return sharedProviderFinder;
+  }
+
+  private final Context context;
+  private final Pattern authorityMatcherPattern;
+  private final String sharedPermission;
+  private final ContentResolver contentResolver;
+
+  /**
+   * Generally used for testing. You should use {@link #get(Context)}
+   */
+  protected SharedProviderFinder(Context context, Pattern authorityMatcherPattern,
+      String sharedPermission, ContentResolver contentResolver) {
+    this.context = context;
+    this.authorityMatcherPattern = authorityMatcherPattern;
+    this.sharedPermission = sharedPermission;
+    this.contentResolver = contentResolver;
   }
 
   /**
@@ -55,14 +72,15 @@ public class SharedProviderFinder implements Types {
    */
   public List<ProviderInfo> findProviders() {
     Log.i("SharedProviders",
-        "Find Authorities using: " + mPattern.pattern() + " Permission: " + sharedPermission);
+        "Find Authorities using: " + authorityMatcherPattern.pattern() + " Permission: "
+            + sharedPermission);
 
     final List<ProviderInfo> installedProviders = getInstalledProviders();
     final List<ProviderInfo> matchedProviders = new ArrayList<>(installedProviders.size());
 
     Matcher matcher;
     for (ProviderInfo provider : installedProviders) {
-      matcher = mPattern.matcher(provider.authority);
+      matcher = authorityMatcherPattern.matcher(provider.authority);
       // #2/3 Skip if authority is null. Skip as we can't match it.
       if (matcher.matches() && !TextUtils.isEmpty(provider.authority)
           && sharedPermission.equalsIgnoreCase(provider.writePermission)) {
@@ -91,15 +109,13 @@ public class SharedProviderFinder implements Types {
     boolean isMaster;
     ProviderInfo providerInfo;
     String masterAuthority = null;
-    for (int i = 0; i < providerInfos.size(); i++) {
+    for (int i = 0, size = providerInfos.size(); i < size; i++) {
       providerInfo = providerInfos.get(i);
       authority = providerInfo.authority;
       //#3 Some shitty apps produce providers with null (or the user match is wrong)
       if (TextUtils.isEmpty(authority)) continue;
       Log.d("SharedProviders", "Auth" + authority + " check for master");
-      isMaster = getBooleanValue(context.getContentResolver()
-              .query(getContentUri(authority, MASTER_KEY, BOOLEAN_TYPE), null, null, null, null),
-          false);
+      isMaster = isProviderMaster(getContentUri(authority), contentResolver);
       Log.d("SharedProviders", "Auth " + authority + " isMaster: " + isMaster);
       //Select the first Master Auth then we un delegate the rest.
       if (isMaster && TextUtils.isEmpty(masterAuthority)) {
@@ -126,19 +142,31 @@ public class SharedProviderFinder implements Types {
   }
 
   /**
+   * Calls the content provider and asks the remote provider if it has been assigned master.
+   */
+  boolean isProviderMaster(Uri contentUri, ContentResolver resolver) {
+    return getBooleanValue(resolver.query(contentUri, null, null, null, null), false);
+  }
+
+  Uri getContentUri(String authority) {
+    return SharedSharedPreferences.getContentUri(authority, MASTER_KEY, BOOLEAN_TYPE);
+  }
+
+  /**
    * Tell this Provider if it should be master or not.
    */
-  private String delegateMaster(String authority, boolean isMaster) {
+  String delegateMaster(String authority, boolean isMaster) {
     ContentValues contentValues = new ContentValues();
     contentValues.put(MASTER_KEY, isMaster);
-    context.getContentResolver().insert(getContentUri(authority, KEY, TYPE), contentValues);
+    context.getContentResolver()
+        .insert(SharedSharedPreferences.getContentUri(authority, KEY, TYPE), contentValues);
     return authority;
   }
 
   /**
    * Finds ALL installed Providers on the Device
    */
-  private List<ProviderInfo> getInstalledProviders() {
+  List<ProviderInfo> getInstalledProviders() {
     final List<PackageInfo> installedPackages =
         context.getPackageManager().getInstalledPackages(PackageManager.GET_PROVIDERS);
     final List<ProviderInfo> providerInfoList = new ArrayList<>();
