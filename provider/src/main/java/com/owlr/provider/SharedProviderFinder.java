@@ -57,10 +57,9 @@ public class SharedProviderFinder implements Types {
     final List<ProviderInfo> installedProviders = getInstalledProviders();
     final ArrayList<ProviderInfo> sharedProviders = new ArrayList<>(installedProviders);
     for (ProviderInfo provider : installedProviders) {
-      // #2 Skip if authority is null. Skip as we can't match it.
-      if (TextUtils.isEmpty(provider.authority)) continue;
       final Matcher matcher = mPattern.matcher(provider.authority);
-      if (!matcher.matches()) {
+      // #2/3 Skip if authority is null. Skip as we can't match it.
+      if (!matcher.matches() || TextUtils.isEmpty(provider.authority)) {
         // No match, remove it from sharedProviders.
         sharedProviders.remove(provider);
       } else {
@@ -90,6 +89,8 @@ public class SharedProviderFinder implements Types {
     for (int i = 0; i < providerInfos.size(); i++) {
       providerInfo = providerInfos.get(i);
       authority = providerInfo.authority;
+      //#3 Some shitty apps produce providers with null (or the user match is wrong)
+      if (TextUtils.isEmpty(authority)) continue;
       isMaster = getBooleanValue(context.getContentResolver()
               .query(getContentUri(authority, MASTER_KEY, BOOLEAN_TYPE), null, null, null, null),
           false);
