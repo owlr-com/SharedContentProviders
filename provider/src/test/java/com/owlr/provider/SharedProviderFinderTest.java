@@ -6,11 +6,11 @@ import android.net.Uri;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class SharedProviderFinderTest {
 
   private final String authority = "com.test.app1.provider";
-  @Mock(answer = Answers.CALLS_REAL_METHODS) SharedProviderFinder sharedProviderFinder;
+  @Mock SharedProviderFinder sharedProviderFinder;
   @Mock ContentResolver contentResolver;
 
   @Before public void setUp() throws Exception {
@@ -30,8 +30,8 @@ public class SharedProviderFinderTest {
     //new SharedProviderFinder(mock(Context.class), Pattern.compile("com\\.test\\.provider"),
     //    "com.test.PERMISSION", contentResolver);
 
-    //when(sharedProviderFinder.getContentUri(authority)).thenReturn(Uri.EMPTY);
-    //when(sharedProviderFinder.isProviderMaster(Uri.EMPTY, contentResolver)).thenCallRealMethod();
+    when(sharedProviderFinder.getContentUri(any(String.class))).thenReturn(Uri.EMPTY);
+    when(sharedProviderFinder.isProviderMaster(Uri.EMPTY, contentResolver)).thenCallRealMethod();
   }
 
   @After public void tearDown() throws Exception {
