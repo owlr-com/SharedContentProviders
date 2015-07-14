@@ -114,7 +114,7 @@ public class SharedProviderFinder implements Types {
       authority = providerInfo.authority;
       //#3 Some shitty apps produce providers with null (or the user match is wrong)
       if (TextUtils.isEmpty(authority)) continue;
-      Log.d("SharedProviders", "Auth" + authority + " check for master");
+      Log.d("SharedProviders", "Auth " + authority + " check for master");
       isMaster = isProviderMaster(getContentUri(authority), contentResolver);
       Log.d("SharedProviders", "Auth " + authority + " isMaster: " + isMaster);
       //Select the first Master Auth then we un delegate the rest.

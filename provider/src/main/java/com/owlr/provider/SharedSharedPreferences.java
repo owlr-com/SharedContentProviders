@@ -137,7 +137,7 @@ public class SharedSharedPreferences implements SharedPreferences, Types {
     private final Context context;
     private final String authority;
 
-    private SharedEditor(Context context, String authority) {
+    SharedEditor(Context context, String authority) {
       this.context = context;
       this.authority = authority;
     }

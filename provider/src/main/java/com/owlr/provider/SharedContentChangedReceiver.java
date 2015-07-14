@@ -34,12 +34,12 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
 
   @Override public void onReceive(Context context, Intent intent) {
     final String appAuthority = MetaDataUtils.getAppAuthority(context);
-    Log.d("SharedProvider", "Received Data Changed Event, SentByAuth [" + appAuthority + "]");
+    final String appSender = intent.getStringExtra(SENDER_AUTHORITY_KEY);
+    Log.d("SharedProvider", "Received Data Changed Event, SentByAuth [" + appSender + "]");
 
     // Ignore me as I sent this!
-    if (TextUtils.isEmpty(appAuthority) || appAuthority.equalsIgnoreCase(
-        intent.getStringExtra(SENDER_AUTHORITY_KEY))) {
-      Log.v("SharedProvider", "Skipped DataChange, SentByAuth [" + appAuthority + "]");
+    if (TextUtils.isEmpty(appAuthority) || appAuthority.equalsIgnoreCase(appSender)) {
+      Log.v("SharedProvider", "Skipped DataChange, SentByAuth [" + appSender + "]");
       return;
     }
     putIntentIntoSharedPreferences(context, intent.getExtras());
@@ -68,8 +68,9 @@ public class SharedContentChangedReceiver extends BroadcastReceiver implements T
     final Iterator<String> keysIter = bundle.keySet().iterator();
     final String appAuthority = MetaDataUtils.getAppAuthority(context);
     if (TextUtils.isEmpty(appAuthority)) return;
-    final SharedSharedPreferences localPrefs = new SharedSharedPreferences(context, appAuthority);
-    SharedSharedPreferences.SharedEditor edit = localPrefs.edit();
+    //We update OUR content provider!
+    SharedSharedPreferences.SharedEditor edit =
+        new SharedSharedPreferences.SharedEditor(context, appAuthority);
 
     Object value;
     String key;
