@@ -4,7 +4,7 @@ apply plugin: "com.jfrog.bintray"
 
 
 // This is the library version used when deploying the artifact
-version = "1.0.0-beta4"
+version = "1.0.0-beta5"
 group = 'com.owlr'
 def siteUrl = 'https://github.com/owlr-com/SharedContentProviders'
 // Homepage URL of the library
@@ -19,7 +19,7 @@ android {
   defaultConfig {
     minSdkVersion 15
     targetSdkVersion 22
-    versionCode 4
+    versionCode 5
     versionName version
     manifestPlaceholders =
         [sharedPermission: '${sharedPermission}', sharedAuthorityMatcher: '${sharedAuthorityMatcher}']
