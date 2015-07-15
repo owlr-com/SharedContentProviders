@@ -71,19 +71,27 @@ public class SharedProviderFinder implements Types {
    * @return this could be empty.
    */
   public List<ProviderInfo> findProviders() {
+    final Pattern authorityMatcherPattern = getAuthorityMatcherPattern();
     Log.i("SharedProviders",
         "Find Authorities using: " + authorityMatcherPattern.pattern() + " Permission: "
-            + sharedPermission);
+            + getSharedPermission());
 
     final List<ProviderInfo> installedProviders = getInstalledProviders();
-    final List<ProviderInfo> matchedProviders = new ArrayList<>(installedProviders.size());
+    final int count = installedProviders.size();
+    final List<ProviderInfo> matchedProviders = new ArrayList<>(count);
+    final String sharedPermission = getSharedPermission();
 
     Matcher matcher;
-    for (ProviderInfo provider : installedProviders) {
+    ProviderInfo provider;
+    for (int i = 0; i < count; i++) {
+      provider = installedProviders.get(i);
+      //#4 Fixes null auths (Facebook).
+      if (TextUtils.isEmpty(provider.authority)) {
+        continue;
+      }
       matcher = authorityMatcherPattern.matcher(provider.authority);
       // #2/3 Skip if authority is null. Skip as we can't match it.
-      if (matcher.matches() && !TextUtils.isEmpty(provider.authority)
-          && sharedPermission.equalsIgnoreCase(provider.writePermission)) {
+      if (matcher.matches() && sharedPermission.equalsIgnoreCase(provider.writePermission)) {
         Log.d("SharedProviders",
             "provider: " + provider.authority + " Matches: " + matcher.matches());
         // It's matched add this.
@@ -156,6 +164,14 @@ public class SharedProviderFinder implements Types {
 
   Uri getContentUri(String authority) {
     return SharedSharedPreferences.getContentUri(authority, MASTER_KEY, BOOLEAN_TYPE);
+  }
+
+  String getSharedPermission() {
+    return sharedPermission;
+  }
+
+  Pattern getAuthorityMatcherPattern() {
+    return authorityMatcherPattern;
   }
 
   /**

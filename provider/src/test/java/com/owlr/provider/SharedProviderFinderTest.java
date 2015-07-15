@@ -8,6 +8,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +39,6 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class) @PrepareForTest({ TextUtils.class, Log.class })
 public class SharedProviderFinderTest {
 
-  private final String authority = "com.test.app1.provider";
   @Mock SharedProviderFinder sharedProviderFinder;
   @Mock ContentResolver contentResolver;
   @Mock Cursor cursor;
@@ -64,10 +65,55 @@ public class SharedProviderFinderTest {
   @After public void tearDown() throws Exception {
     sharedProviderFinder = null;
     contentResolver = null;
+    cursor = null;
   }
 
-  @Test public void testFindProviders() throws Exception {
+  @Test public void testFindProviders_nullProvider() throws Exception {
+    final ProviderInfo providerInfo = mock(ProviderInfo.class);
+    providerInfo.authority = null;
+    // Pass in a bad ProviderInfo
+    when(sharedProviderFinder.getInstalledProviders()).thenReturn(
+        Collections.singletonList(providerInfo));
+    when(sharedProviderFinder.getAuthorityMatcherPattern()).thenReturn(
+        Pattern.compile("com\\.owlr\\.test"));
+    when(sharedProviderFinder.findProviders()).thenCallRealMethod();
 
+    List<ProviderInfo> results = sharedProviderFinder.findProviders();
+    assertThat(results).isNotNull().isEmpty();
+  }
+
+  @Test public void testFindProviders_findTestProvider() throws Exception {
+    final ProviderInfo providerInfo = mock(ProviderInfo.class);
+    providerInfo.authority = "com.owlr.test";
+    providerInfo.writePermission = "com.owlr.test.PERMISSION";
+
+    // Pass in a normal ProviderInfo
+    when(sharedProviderFinder.getInstalledProviders()).thenReturn(
+        Collections.singletonList(providerInfo));
+    when(sharedProviderFinder.getAuthorityMatcherPattern()).thenReturn(
+        Pattern.compile("com\\.owlr\\.test"));
+    when(sharedProviderFinder.getSharedPermission()).thenReturn("com.owlr.test.PERMISSION");
+    when(sharedProviderFinder.findProviders()).thenCallRealMethod();
+
+    List<ProviderInfo> results = sharedProviderFinder.findProviders();
+    assertThat(results).isNotNull().hasSize(1);
+  }
+
+  @Test public void testFindProviders_badProviderDifferentPermission() throws Exception {
+    final ProviderInfo providerInfo = mock(ProviderInfo.class);
+    providerInfo.authority = "com.owlr.test";
+    providerInfo.writePermission = "com.owlr.test.OTHER_PERMISSION";
+
+    // Pass in a normal ProviderInfo
+    when(sharedProviderFinder.getInstalledProviders()).thenReturn(
+        Collections.singletonList(providerInfo));
+    when(sharedProviderFinder.getAuthorityMatcherPattern()).thenReturn(
+        Pattern.compile("com\\.owlr\\.test"));
+    when(sharedProviderFinder.getSharedPermission()).thenReturn("com.owlr.test.PERMISSION");
+    when(sharedProviderFinder.findProviders()).thenCallRealMethod();
+
+    List<ProviderInfo> results = sharedProviderFinder.findProviders();
+    assertThat(results).isNotNull().hasSize(0);
   }
 
   @Test public void testFindMasterProvider_throwException() throws Exception {
