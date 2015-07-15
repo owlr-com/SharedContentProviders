@@ -21,18 +21,12 @@ public final class MetaDataUtils {
 
   @Nullable public static String getSharedAuthorityMatcher(Context context) {
     Bundle metaData = getMetaData(context);
-    if (metaData != null) {
-      return metaData.getString(APP_AUTHORITY_MATCHER);
-    }
-    return null;
+    return getMetaValue(metaData, APP_AUTHORITY_MATCHER);
   }
 
   @Nullable public static String getSharedPermission(Context context) {
     Bundle metaData = getMetaData(context);
-    if (metaData != null) {
-      return metaData.getString(APP_SHARED_PERMISSION);
-    }
-    return null;
+    return getMetaValue(metaData, APP_SHARED_PERMISSION);
   }
 
   @Nullable public static String getAppAuthority(Context context) {
@@ -43,7 +37,14 @@ public final class MetaDataUtils {
     return null;
   }
 
-  @Nullable private static Bundle getMetaData(Context context) {
+  @Nullable protected static String getMetaValue(Bundle metaData, String appSharedPermission) {
+    if (metaData != null) {
+      return metaData.getString(appSharedPermission);
+    }
+    return null;
+  }
+
+  @Nullable protected static Bundle getMetaData(Context context) {
     try {
       ApplicationInfo applicationInfo = context.getPackageManager()
           .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
