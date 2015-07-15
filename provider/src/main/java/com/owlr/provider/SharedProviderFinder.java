@@ -97,24 +97,25 @@ public class SharedProviderFinder implements Types {
   /**
    * Finds the master authority.
    *
+   * @param providerInfos Non-null list of found providers to check
    * @return authority to use for the Uri for the master. That could be you as in we can delegate
    * ourselves as master.
    */
   public String findMasterProvider(List<ProviderInfo> providerInfos) {
-    if (providerInfos.size() < 1) {
+    if (providerInfos == null || providerInfos.size() < 1) {
       throw new IllegalStateException(
           "There should be at least one Provider registered for this to work.");
     }
+    ProviderInfo providerInfo;
     String authority;
     boolean isMaster;
-    ProviderInfo providerInfo;
     String masterAuthority = null;
     for (int i = 0, size = providerInfos.size(); i < size; i++) {
       providerInfo = providerInfos.get(i);
       authority = providerInfo.authority;
       //#3 Some shitty apps produce providers with null (or the user match is wrong)
       if (TextUtils.isEmpty(authority)) continue;
-      Log.d("SharedProviders", "Auth " + authority + " check for master");
+
       isMaster = isProviderMaster(getContentUri(authority), contentResolver);
       Log.d("SharedProviders", "Auth " + authority + " isMaster: " + isMaster);
       //Select the first Master Auth then we un delegate the rest.
@@ -131,7 +132,12 @@ public class SharedProviderFinder implements Types {
       return masterAuthority;
     }
     // If we reach here, then there are no masters so we delegate one. (Top of the list in the current impl)
-    return delegateMaster(providerInfos.get(0).authority, true);
+    masterAuthority = providerInfos.get(0).authority;
+    if (TextUtils.isEmpty(masterAuthority)) {
+      throw new IllegalStateException("There are no valid providers to delegate. "
+          + "Are you sure you have your permissions and authorityMatcher set correctly");
+    }
+    return delegateMaster(masterAuthority, true);
   }
 
   /**
